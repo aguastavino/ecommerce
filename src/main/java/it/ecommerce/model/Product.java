@@ -31,4 +31,8 @@ public class Product {
 
     @Column(nullable = false)
     private int stock;
+
+    public void decreaseStock(int quantity) {
+        this.stock -= quantity;
+    }
 }
