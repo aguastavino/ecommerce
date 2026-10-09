@@ -32,6 +32,10 @@ public class Product {
     @Column(nullable = false)
     private int stock;
 
+    public void increaseStock(int quantity) {
+        this.stock += quantity;
+    }
+
     public void decreaseStock(int quantity) {
         this.stock -= quantity;
     }

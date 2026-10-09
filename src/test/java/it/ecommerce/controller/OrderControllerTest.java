@@ -55,7 +55,7 @@ class OrderControllerTest {
 
         mockMvc.perform(get("/api/products"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].stock").value(6));
+                .andExpect(jsonPath("$.content[0].stock").value(6));
     }
 
     @Test
@@ -68,9 +68,9 @@ class OrderControllerTest {
                 .andExpect(status().isConflict());
 
         mockMvc.perform(get("/api/orders"))
-                .andExpect(jsonPath("$").isEmpty());
+                .andExpect(jsonPath("$.content").isEmpty());
         mockMvc.perform(get("/api/products"))
-                .andExpect(jsonPath("$[0].stock").value(10));
+                .andExpect(jsonPath("$.content[0].stock").value(10));
     }
 
     @Test

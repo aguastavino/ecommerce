@@ -1,12 +1,12 @@
 package it.ecommerce.service;
 
 import it.ecommerce.model.Product;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface ProductService {
 
     Product add(Product product);
 
-    List<Product> findAll();
+    Page<Product> findAll(Pageable pageable);
 }

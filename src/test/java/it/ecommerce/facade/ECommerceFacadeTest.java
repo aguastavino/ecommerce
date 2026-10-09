@@ -9,6 +9,8 @@ import it.ecommerce.exception.ResourceNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
@@ -21,6 +23,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @SpringBootTest
 @Transactional
 class ECommerceFacadeTest {
+
+    private static final Pageable PAGE = PageRequest.of(0, 10);
 
     @Autowired
     private ECommerceFacade facade;
@@ -39,7 +43,7 @@ class ECommerceFacadeTest {
         Customer saved = facade.addCustomer(customer("a@test.it", "RSSMRA90A01H501A"));
 
         assertNotNull(saved.getId());
-        assertEquals(1, facade.getCustomers().size());
+        assertEquals(1L, facade.getCustomers(PAGE).getTotalElements());
     }
 
     @Test
@@ -54,7 +58,7 @@ class ECommerceFacadeTest {
     void addsAndListsProducts() {
         facade.addProduct(product("P1"));
 
-        assertEquals(1, facade.getProducts().size());
+        assertEquals(1L, facade.getProducts(PAGE).getTotalElements());
         assertThrows(DuplicateResourceException.class, () -> facade.addProduct(product("P1")));
     }
 
@@ -70,7 +74,7 @@ class ECommerceFacadeTest {
 
         assertNotNull(order.getId());
         assertEquals(2, order.getItems().size());
-        assertEquals(1, facade.getOrders().size());
+        assertEquals(1L, facade.getOrders(PAGE).getTotalElements());
     }
 
     @Test

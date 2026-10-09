@@ -6,10 +6,10 @@ import it.ecommerce.repository.CustomerRepository;
 import it.ecommerce.service.CustomerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Slf4j
 @Service
@@ -37,10 +37,10 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Customer> findAll() {
+    public Page<Customer> findAll(Pageable pageable) {
         log.info("Retrieving all customers");
-        List<Customer> customers = customerRepository.findAll();
-        log.info("Retrieved {} customers", customers.size());
+        Page<Customer> customers = customerRepository.findAll(pageable);
+        log.info("Retrieved {} customers", customers.getNumberOfElements());
         return customers;
     }
 }

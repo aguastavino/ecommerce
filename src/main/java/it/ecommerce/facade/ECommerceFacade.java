@@ -3,14 +3,15 @@ package it.ecommerce.facade;
 import it.ecommerce.command.CreateOrderCommand;
 import it.ecommerce.model.Customer;
 import it.ecommerce.model.Order;
+import it.ecommerce.model.OrderEventType;
 import it.ecommerce.model.Product;
 import it.ecommerce.service.CustomerService;
 import it.ecommerce.service.OrderService;
 import it.ecommerce.service.ProductService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 /**
  * Single entry point of the E-Commerce system (Facade over the customer, product and order services).
@@ -27,23 +28,31 @@ public class ECommerceFacade {
         return customerService.add(customer);
     }
 
-    public List<Customer> getCustomers() {
-        return customerService.findAll();
+    public Page<Customer> getCustomers(Pageable pageable) {
+        return customerService.findAll(pageable);
     }
 
     public Product addProduct(Product product) {
         return productService.add(product);
     }
 
-    public List<Product> getProducts() {
-        return productService.findAll();
+    public Page<Product> getProducts(Pageable pageable) {
+        return productService.findAll(pageable);
     }
 
     public Order createOrder(CreateOrderCommand command) {
         return orderService.create(command);
     }
 
-    public List<Order> getOrders() {
-        return orderService.findAll();
+    public Page<Order> getOrders(Pageable pageable) {
+        return orderService.findAll(pageable);
+    }
+
+    public Order handleOrderEvent(Long orderId, OrderEventType event) {
+        return orderService.handleEvent(orderId, event);
+    }
+
+    public void cancelOrder(Long orderId) {
+        orderService.cancel(orderId);
     }
 }

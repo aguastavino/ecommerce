@@ -20,7 +20,7 @@ public class OrderAdapter {
     }
 
     public OrderResponse toResponse(Order order) {
-        return new OrderResponse(order.getId(), order.getCustomer().getId(), order.getCreatedAt(),
+        return new OrderResponse(order.getId(), order.getCustomer().getId(), order.getCreatedAt(), order.getStatus(),
                 order.getItems().stream()
                         .map(i -> new OrderItemResponse(i.getProduct().getId(), i.getProduct().getCode(), i.getQuantity()))
                         .toList());

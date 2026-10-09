@@ -6,10 +6,10 @@ import it.ecommerce.repository.ProductRepository;
 import it.ecommerce.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Slf4j
 @Service
@@ -33,10 +33,10 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Product> findAll() {
+    public Page<Product> findAll(Pageable pageable) {
         log.info("Retrieving all products");
-        List<Product> products = productRepository.findAll();
-        log.info("Retrieved {} products", products.size());
+        Page<Product> products = productRepository.findAll(pageable);
+        log.info("Retrieved {} products", products.getNumberOfElements());
         return products;
     }
 }

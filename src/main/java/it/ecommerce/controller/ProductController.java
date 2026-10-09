@@ -8,9 +8,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import it.ecommerce.adapter.ProductAdapter;
 import it.ecommerce.dto.ProductRequest;
 import it.ecommerce.dto.ProductResponse;
+import it.ecommerce.dto.PageResponse;
 import it.ecommerce.facade.ECommerceFacade;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,8 +22,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/products")
@@ -42,9 +44,9 @@ public class ProductController {
     }
 
     @Operation(summary = "List all products")
-    @ApiResponse(responseCode = "200", description = "List of products")
+    @ApiResponse(responseCode = "200", description = "Page of products")
     @GetMapping
-    public List<ProductResponse> findAll() {
-        return facade.getProducts().stream().map(adapter::toResponse).toList();
+    public PageResponse<ProductResponse> findAll(@ParameterObject @PageableDefault(size = 20, sort = "id") Pageable pageable) {
+        return PageResponse.of(facade.getProducts(pageable), adapter::toResponse);
     }
 }

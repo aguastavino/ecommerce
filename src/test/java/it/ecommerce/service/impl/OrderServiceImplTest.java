@@ -10,7 +10,14 @@ import it.ecommerce.model.Product;
 import it.ecommerce.repository.CustomerRepository;
 import it.ecommerce.repository.OrderRepository;
 import it.ecommerce.repository.ProductRepository;
+import it.ecommerce.strategy.DeliveredEventHandler;
 import it.ecommerce.strategy.StockAvailabilityStrategy;
+import it.ecommerce.exception.InvalidOrderStateException;
+import it.ecommerce.model.OrderEventType;
+import it.ecommerce.model.OrderItem;
+import it.ecommerce.model.OrderStatus;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -50,14 +57,15 @@ class OrderServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        service = new OrderServiceImpl(orderRepository, customerRepository, productRepository, orderFactory, strategy);
+        service = new OrderServiceImpl(orderRepository, customerRepository, productRepository, orderFactory, strategy,
+                List.of(new DeliveredEventHandler()));
     }
 
     @Test
     void createsOrderAndDecreasesStockWithMergedLines() {
         Order order = new Order();
         when(customerRepository.findById(1L)).thenReturn(Optional.of(customer));
-        when(productRepository.findById(2L)).thenReturn(Optional.of(product));
+        when(productRepository.findByIdForUpdate(2L)).thenReturn(Optional.of(product));
         when(strategy.isAvailable(product, 5)).thenReturn(true);
         when(orderFactory.create(any(), any())).thenReturn(order);
         when(orderRepository.save(order)).thenReturn(order);
@@ -76,7 +84,7 @@ class OrderServiceImplTest {
     @Test
     void rejectsOrderWhenStockIsInsufficient() {
         when(customerRepository.findById(1L)).thenReturn(Optional.of(customer));
-        when(productRepository.findById(2L)).thenReturn(Optional.of(product));
+        when(productRepository.findByIdForUpdate(2L)).thenReturn(Optional.of(product));
         when(strategy.isAvailable(product, 11)).thenReturn(false);
 
         assertThrows(InsufficientStockException.class,
@@ -97,7 +105,7 @@ class OrderServiceImplTest {
     @Test
     void failsWhenProductIsUnknown() {
         when(customerRepository.findById(1L)).thenReturn(Optional.of(customer));
-        when(productRepository.findById(2L)).thenReturn(Optional.empty());
+        when(productRepository.findByIdForUpdate(2L)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class,
                 () -> service.create(new CreateOrderCommand(1L, List.of(new CreateOrderCommand.Line(2L, 1)))));
@@ -105,8 +113,57 @@ class OrderServiceImplTest {
 
     @Test
     void listsOrders() {
-        when(orderRepository.findAll()).thenReturn(List.of(new Order()));
+        when(orderRepository.findAll(PageRequest.of(0, 5))).thenReturn(new PageImpl<>(List.of(new Order())));
 
-        assertEquals(1, service.findAll().size());
+        assertEquals(1L, service.findAll(PageRequest.of(0, 5)).getTotalElements());
+    }
+
+    private Order orderWithStatus(OrderStatus status) {
+        Order order = Order.builder().id(5L).customer(customer).status(status).build();
+        order.addItem(OrderItem.builder().product(product).quantity(3).build());
+        return order;
+    }
+
+    @Test
+    void deliveredEventMovesOrderToConsegnato() {
+        Order order = orderWithStatus(OrderStatus.ORDINATO);
+        when(orderRepository.findById(5L)).thenReturn(Optional.of(order));
+
+        assertEquals(OrderStatus.CONSEGNATO, service.handleEvent(5L, OrderEventType.DELIVERED).getStatus());
+    }
+
+    @Test
+    void deliveredEventIsRejectedWhenAlreadyDelivered() {
+        when(orderRepository.findById(5L)).thenReturn(Optional.of(orderWithStatus(OrderStatus.CONSEGNATO)));
+
+        assertThrows(InvalidOrderStateException.class, () -> service.handleEvent(5L, OrderEventType.DELIVERED));
+    }
+
+    @Test
+    void eventOnUnknownOrderFails() {
+        when(orderRepository.findById(5L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> service.handleEvent(5L, OrderEventType.DELIVERED));
+    }
+
+    @Test
+    void cancelDeletesOrderAndRestoresStock() {
+        Order order = orderWithStatus(OrderStatus.ORDINATO);
+        when(orderRepository.findById(5L)).thenReturn(Optional.of(order));
+        when(productRepository.findByIdForUpdate(2L)).thenReturn(Optional.of(product));
+
+        service.cancel(5L);
+
+        assertEquals(13, product.getStock());
+        verify(orderRepository).delete(order);
+    }
+
+    @Test
+    void cancelIsRejectedForDeliveredOrder() {
+        Order order = orderWithStatus(OrderStatus.CONSEGNATO);
+        when(orderRepository.findById(5L)).thenReturn(Optional.of(order));
+
+        assertThrows(InvalidOrderStateException.class, () -> service.cancel(5L));
+        verify(orderRepository, never()).delete(any());
     }
 }

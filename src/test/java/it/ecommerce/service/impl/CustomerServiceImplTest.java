@@ -9,6 +9,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -53,8 +56,8 @@ class CustomerServiceImplTest {
 
     @Test
     void listsCustomers() {
-        when(repository.findAll()).thenReturn(List.of(customer));
+        when(repository.findAll(PageRequest.of(0, 5))).thenReturn(new PageImpl<>(List.of(customer)));
 
-        assertEquals(1, service.findAll().size());
+        assertEquals(1L, service.findAll(PageRequest.of(0, 5)).getTotalElements());
     }
 }

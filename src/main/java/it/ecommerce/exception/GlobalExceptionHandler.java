@@ -22,7 +22,8 @@ public class GlobalExceptionHandler {
         return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
-    @ExceptionHandler({DuplicateResourceException.class, InsufficientStockException.class})
+    @ExceptionHandler({DuplicateResourceException.class, InsufficientStockException.class,
+            InvalidOrderStateException.class})
     public ProblemDetail handleConflict(RuntimeException ex) {
         log.warn("Conflict: {}", ex.getMessage());
         return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
