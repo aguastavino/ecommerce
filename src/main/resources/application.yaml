@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: ecommerce
+  datasource:
+    url: jdbc:h2:mem:ecommerce;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.xml
+  h2:
+    console:
+      enabled: true
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html

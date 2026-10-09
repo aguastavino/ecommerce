@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="001-create-customer" author="ecommerce">
+        <createTable tableName="customer">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="first_name" type="VARCHAR(255)"><constraints nullable="false"/></column>
+            <column name="last_name" type="VARCHAR(255)"><constraints nullable="false"/></column>
+            <column name="birth_date" type="DATE"><constraints nullable="false"/></column>
+            <column name="tax_code" type="VARCHAR(16)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="uk_customer_tax_code"/>
+            </column>
+            <column name="email" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="uk_customer_email"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="001-create-product" author="ecommerce">
+        <createTable tableName="product">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="code" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="uk_product_code"/>
+            </column>
+            <column name="name" type="VARCHAR(255)"><constraints nullable="false"/></column>
+            <column name="stock" type="INT"><constraints nullable="false"/></column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="001-create-orders" author="ecommerce">
+        <createTable tableName="orders">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="customer_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_orders_customer"
+                             references="customer(id)"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP"><constraints nullable="false"/></column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="001-create-order-item" author="ecommerce">
+        <createTable tableName="order_item">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="order_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_order_item_order"
+                             references="orders(id)"/>
+            </column>
+            <column name="product_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_order_item_product"
+                             references="product(id)"/>
+            </column>
+            <column name="quantity" type="INT"><constraints nullable="false"/></column>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>
